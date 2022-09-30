@@ -3,6 +3,10 @@ package com.projexe.flutter_login_with_amazon
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.NonNull
+import com.amazon.identity.auth.device.AuthError
+import com.amazon.identity.auth.device.api.authorization.AuthorizeResult
+import com.amazon.identity.auth.device.api.authorization.Scope
+import com.amazon.identity.auth.device.api.authorization.ScopeFactory
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
