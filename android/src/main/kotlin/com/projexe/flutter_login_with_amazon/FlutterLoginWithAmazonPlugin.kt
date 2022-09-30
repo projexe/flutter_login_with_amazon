@@ -4,9 +4,8 @@ import android.os.Handler
 import android.os.Looper
 import androidx.annotation.NonNull
 import com.amazon.identity.auth.device.AuthError
-import com.amazon.identity.auth.device.api.authorization.AuthorizeResult
-import com.amazon.identity.auth.device.api.authorization.Scope
-import com.amazon.identity.auth.device.api.authorization.ScopeFactory
+import com.amazon.identity.auth.device.api.Listener
+import com.amazon.identity.auth.device.api.authorization.*
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -92,10 +91,52 @@ class FlutterLoginWithAmazonPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
+//    if (call.method == "getPlatformVersion") {
+//      result.success("Android ${android.os.Build.VERSION.RELEASE}")
+//    } else {
+//      result.notImplemented()
+//    }
+
+    when (call.method){
+      "login" -> {
+        AuthorizationManager.authorize(
+          AuthorizeRequest
+          .Builder(createRequestContext(result))
+          .addScopes(*createScopes(call.arguments()))
+          .build())
+      }
+      "getAuthCode" -> {
+        AuthorizationManager.authorize(
+          AuthorizeRequest
+          .Builder(createRequestContext(result))
+          .addScopes(*createScopes(call.argument("scopes") ?: mapOf()))
+          .forGrantType(AuthorizeRequest.GrantType.AUTHORIZATION_CODE)
+          .withProofKeyParameters(call.argument("codeChallenge"), call.argument("codeChallengeMethod"))
+          .build())
+      }
+      "getAccessToken" -> {
+        AuthorizationManager.getToken(context, createScopes(call.arguments()), object :
+          Listener<AuthorizeResult, AuthError> {
+          override fun onSuccess(p0: AuthorizeResult?) {
+            //this method only returns the accessToken, all other properties are null
+            resultSuccess(result, p0?.accessToken)
+          }
+          override fun onError(p0: AuthError?) {
+            resultError(result, p0)
+          }
+        })
+      }
+      "logout" -> {
+        AuthorizationManager.signOut(context, object : Listener<Void, AuthError> {
+          override fun onSuccess(p0: Void?) {
+            resultSuccess(result, true)
+          }
+          override fun onError(p0: AuthError?) {
+            resultError(result, p0)
+          }
+        })
+      }
+      else -> result.notImplemented()
     }
   }
 
