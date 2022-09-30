@@ -44,3 +44,7 @@ android {
         minSdkVersion 16
     }
 }
+
+dependencies {
+    implementation files('login-with-amazon-sdk.jar')
+}
