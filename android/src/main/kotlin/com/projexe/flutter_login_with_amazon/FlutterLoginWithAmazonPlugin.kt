@@ -14,6 +14,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.PluginRegistry
 import org.json.JSONObject
 
 /**
@@ -82,14 +83,16 @@ private fun createScopes(arguments: Map<String, Any>): Array<Scope> =
 
 
 /** FlutterLoginWithAmazonPlugin */
-class FlutterLoginWithAmazonPlugin(private val context: Context): FlutterPlugin, MethodCallHandler {
+class FlutterLoginWithAmazonPlugin(): FlutterPlugin, MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
+  private var applicationContext: Context? = null
   private lateinit var channel : MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    this.applicationContext = flutterPluginBinding.applicationContext
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_login_with_amazon")
     channel.setMethodCallHandler(this)
   }
@@ -125,7 +128,7 @@ class FlutterLoginWithAmazonPlugin(private val context: Context): FlutterPlugin,
       }
       "getAccessToken" -> {
         if (call.arguments != null) {
-        AuthorizationManager.getToken(context, createScopes(call.arguments()!!), object :
+        AuthorizationManager.getToken(applicationContext, createScopes(call.arguments()!!), object :
           Listener<AuthorizeResult, AuthError> {
           override fun onSuccess(p0: AuthorizeResult?) {
             //this method only returns the accessToken, all other properties are null
@@ -138,7 +141,7 @@ class FlutterLoginWithAmazonPlugin(private val context: Context): FlutterPlugin,
       }
       }
       "logout" -> {
-        AuthorizationManager.signOut(context, object : Listener<Void, AuthError> {
+        AuthorizationManager.signOut(applicationContext, object : Listener<Void, AuthError> {
           override fun onSuccess(p0: Void?) {
             resultSuccess(result, true)
           }
@@ -155,9 +158,10 @@ class FlutterLoginWithAmazonPlugin(private val context: Context): FlutterPlugin,
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+    applicationContext = null
   }
 
-  private fun createRequestContext(result: Result) = RequestContext.create(context).apply {
+  private fun createRequestContext(result: Result) = RequestContext.create(applicationContext).apply {
     registerListener(object : AuthorizeListener(){
       override fun onCancel(p0: AuthCancellation?) {
         resultError(result)

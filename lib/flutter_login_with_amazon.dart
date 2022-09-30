@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 
 import 'flutter_login_with_amazon_platform_interface.dart';
 
+part 'widgets.dart';
 class FlutterLoginWithAmazon {
   Future<String?> getPlatformVersion() {
     return FlutterLoginWithAmazonPlatform.instance.getPlatformVersion();

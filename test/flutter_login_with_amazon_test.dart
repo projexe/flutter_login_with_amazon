@@ -10,6 +10,30 @@ class MockFlutterLoginWithAmazonPlatform
 
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
+
+  @override
+  Future<String?> getAccessToken(Map<String, dynamic> scopes) {
+    // TODO: implement getAccessToken
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map?> getAuthCode(String codeChallenge, String codeChallengeMethod, Map<String, dynamic> scopes) {
+    // TODO: implement getAuthCode
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map?> login(Map<String, dynamic> scopes) {
+    // TODO: implement login
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool?> logout() {
+    // TODO: implement logout
+    throw UnimplementedError();
+  }
 }
 
 void main() {
