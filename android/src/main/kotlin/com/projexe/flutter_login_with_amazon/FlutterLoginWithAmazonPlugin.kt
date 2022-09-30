@@ -1,11 +1,13 @@
 package com.projexe.flutter_login_with_amazon
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.NonNull
 import com.amazon.identity.auth.device.AuthError
 import com.amazon.identity.auth.device.api.Listener
 import com.amazon.identity.auth.device.api.authorization.*
+import com.amazon.identity.auth.device.api.workflow.RequestContext
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -77,8 +79,10 @@ private fun createScopes(arguments: Map<String, Any>): Array<Scope> =
   }.toTypedArray()
 
 
+
+
 /** FlutterLoginWithAmazonPlugin */
-class FlutterLoginWithAmazonPlugin: FlutterPlugin, MethodCallHandler {
+class FlutterLoginWithAmazonPlugin(private val context: Context): FlutterPlugin, MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -99,11 +103,16 @@ class FlutterLoginWithAmazonPlugin: FlutterPlugin, MethodCallHandler {
 
     when (call.method){
       "login" -> {
-        AuthorizationManager.authorize(
-          AuthorizeRequest
-          .Builder(createRequestContext(result))
-          .addScopes(*createScopes(call.arguments()))
-          .build())
+        if (call.arguments != null) {
+          AuthorizationManager.authorize(
+            AuthorizeRequest
+              .Builder(createRequestContext(result))
+              .addScopes(*createScopes(call.arguments()!!))
+              .build()
+          )
+        } else {
+          resultError(result)
+        }
       }
       "getAuthCode" -> {
         AuthorizationManager.authorize(
@@ -115,7 +124,8 @@ class FlutterLoginWithAmazonPlugin: FlutterPlugin, MethodCallHandler {
           .build())
       }
       "getAccessToken" -> {
-        AuthorizationManager.getToken(context, createScopes(call.arguments()), object :
+        if (call.arguments != null) {
+        AuthorizationManager.getToken(context, createScopes(call.arguments()!!), object :
           Listener<AuthorizeResult, AuthError> {
           override fun onSuccess(p0: AuthorizeResult?) {
             //this method only returns the accessToken, all other properties are null
@@ -125,6 +135,7 @@ class FlutterLoginWithAmazonPlugin: FlutterPlugin, MethodCallHandler {
             resultError(result, p0)
           }
         })
+      }
       }
       "logout" -> {
         AuthorizationManager.signOut(context, object : Listener<Void, AuthError> {
@@ -138,9 +149,28 @@ class FlutterLoginWithAmazonPlugin: FlutterPlugin, MethodCallHandler {
       }
       else -> result.notImplemented()
     }
+
+
   }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+  }
+
+  private fun createRequestContext(result: Result) = RequestContext.create(context).apply {
+    registerListener(object : AuthorizeListener(){
+      override fun onCancel(p0: AuthCancellation?) {
+        resultError(result)
+        unregisterListener(this)
+      }
+      override fun onError(p0: AuthError?) {
+        resultError(result, p0)
+        unregisterListener(this)
+      }
+      override fun onSuccess(p0: AuthorizeResult?) {
+        resultAuthorized(result, p0)
+        unregisterListener(this)
+      }
+    })
   }
 }
