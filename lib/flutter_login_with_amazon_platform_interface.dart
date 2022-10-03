@@ -8,7 +8,8 @@ abstract class FlutterLoginWithAmazonPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static FlutterLoginWithAmazonPlatform _instance = MethodChannelFlutterLoginWithAmazon();
+  static FlutterLoginWithAmazonPlatform _instance =
+      MethodChannelFlutterLoginWithAmazon();
 
   /// The default instance of [FlutterLoginWithAmazonPlatform] to use.
   ///
@@ -24,19 +25,22 @@ abstract class FlutterLoginWithAmazonPlatform extends PlatformInterface {
   }
 
   Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
+    throw UnimplementedError('getPlatformVersion() has not been implemented.');
   }
-  Future<Map?> login(Map<String, dynamic> scopes){
+
+  Future<Map?> login(Map<String, dynamic> scopes) {
     throw UnimplementedError('login() has not been implemented.');
   }
-  Future<Map?> getAuthCode(String codeChallenge,
-      String codeChallengeMethod, Map<String, dynamic> scopes) {
+
+  Future<Map?> getAuthCode(String codeChallenge, String codeChallengeMethod,
+      Map<String, dynamic> scopes) {
     throw UnimplementedError('getAuthCode() has not been implemented.');
   }
 
   Future<bool?> logout() {
     throw UnimplementedError('logout() has not been implemented.');
   }
+
   Future<String?> getAccessToken(Map<String, dynamic> scopes) {
     throw UnimplementedError('getAccessToken() has not been implemented.');
   }
